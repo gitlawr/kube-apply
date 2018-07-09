@@ -13,6 +13,12 @@ $YAML_CONTENT
 EOF
 fi
 
+if [ ! -f "$YAML_PATH" ]
+then
+	echo "File \"$YAML_PATH\" not found! "
+	exit 1
+fi
+
 local_registry_port=$(kubectl get svc docker-registry -o=custom-columns=PORT:.spec.ports[0].nodePort|sed -n '2p')
 if [ -n "$local_registry_port" ] && [ "$local_registry_port"x != "<none>"x ]
 then
