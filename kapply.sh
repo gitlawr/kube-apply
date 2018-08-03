@@ -22,8 +22,18 @@ fi
 local_registry_port=$(kubectl get svc docker-registry -o=custom-columns=PORT:.spec.ports[0].nodePort|sed -n '2p')
 if [ -n "$local_registry_port" ] && [ "$local_registry_port"x != "<none>"x ]
 then
-CICD_LOCAL_REGISTRY="localhost:$local_registry_port"
+CICD_LOCAL_REGISTRY="127.0.0.1:$local_registry_port"
 echo "detected local registry: $CICD_LOCAL_REGISTRY"
+fi
+
+if [ -z "$CICD_REGISTRY" ]
+then
+	CICD_REGISTRY=$CICD_LOCAL_REGISTRY
+fi
+
+if [ -n "$CICD_IMAGE_REPO" ]
+then
+	CICD_IMAGE="$CICD_REGISTRY/$CICD_IMAGE_REPO"
 fi
 
 echo "perform env var substitution"
@@ -41,5 +51,7 @@ sed -i 's^${CICD_EXECUTION_SEQUENCE}^'"$CICD_EXECUTION_SEQUENCE^g" "$YAML_PATH"
 sed -i 's^${CICD_EVENT}^'"$CICD_EVENT^g" "$YAML_PATH"
 sed -i 's^${CICD_CLUSTER_ID}^'"$CICD_CLUSTER_ID^g" "$YAML_PATH"
 sed -i 's^${CICD_PROJECT_ID}^'"$CICD_PROJECT_ID^g" "$YAML_PATH"
+sed -i 's^${CICD_REGISTRY}^'"$CICD_REGISTRY^g" "$YAML_PATH"
+sed -i 's^${CICD_IMAGE}^'"$CICD_IMAGE^g" "$YAML_PATH"
 
 kubectl apply -f "$YAML_PATH"
